@@ -3,13 +3,13 @@ import logo from './logo.svg';
 import React from 'react';
 import './App.css';
 
-import firebase, { FirebaseError } from 'firebase/app';
-import 'firebase/firestore';
-import 'firebase/auth';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
+import 'firebase/compat/auth';
+
 
 import { useAuthState, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { fetchSignInMethodsForEmail } from 'firebase/auth';
 
 // Initialize firebase app with keys & credentials 
 firebase.initializeApp({
@@ -32,6 +32,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        < img src={logo} className="App-logo" alt="logo" />
+        <h1 className="App-title">Welcome to React</h1>
       </header>
       <section>
         {user ? <ChatRoom /> : <SignIn />}
