@@ -1,3 +1,4 @@
+// Import app dependencies
 import logo from './logo.svg';
 import React from 'react';
 import './App.css';
@@ -10,6 +11,7 @@ import { useAuthState, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { fetchSignInMethodsForEmail } from 'firebase/auth';
 
+// Initialize firebase app with keys & credentials 
 firebase.initializeApp({
   apiKey: "AIzaSyA9UXiRdS6R81U0A5uVxlevx8lgKTkiU9k",
   authDomain: "ec463-miniproj-398821.firebaseapp.com",
@@ -38,21 +40,20 @@ function App() {
   );
 }
 
+// Sign in function via Google Auth
 function SignIn() {
-
+  // Provider integration with Google-Auth
   const signInWithGoogle = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWitPopUp(provider);
   }
-  return (
-    <button onClick={signInWithGoogle}>Sign In with Google</button>
-  )
+  // Function authentication trigger 
+  return ( <button onClick={signInWithGoogle}>Sign In with Google</button> )
 }
 
+// Sign out function
 function SignOut() {
-  return auth.CurrentUser && (
-    <button onClick={ () => auth.signOut()}>Sign Out</button>
-  )
+  return auth.CurrentUser && ( <button onClick={ () => auth.signOut()}>Sign Out</button> )
 }
 
 function ChatRoom() {
@@ -62,11 +63,19 @@ function ChatRoom() {
 
   return (
     <>
-      
+      <div>
+        {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg}/>)}
+      </div>
     </>
 
 
   )
+}
+
+function ChatMessage(props) {
+  const { test, uid } = props.message;
+
+  return <p>{text}</p>
 }
 
 export default App;
