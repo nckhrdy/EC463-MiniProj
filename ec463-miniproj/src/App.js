@@ -6,7 +6,7 @@ import firbase, { FirebaseError } from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { useAuthState, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 firbase.initializeApp({
@@ -35,6 +35,20 @@ function App() {
       </section>
     </div>
   );
+}
+
+function SignIn() {
+
+  const signInWithGoogle = () => {
+    const provider = new firbase.auth.GoogleAuthProvider();
+  }
+  return (
+    <button onClick={signInWithGoogle}>Sign In with Google</button>
+  )
+}
+
+function ChatRoom() {
+
 }
 
 export default App;
