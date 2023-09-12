@@ -41,10 +41,15 @@ function SignIn() {
 
   const signInWithGoogle = () => {
     const provider = new firbase.auth.GoogleAuthProvider();
+    auth.signInWitPopUp(provider);
   }
   return (
     <button onClick={signInWithGoogle}>Sign In with Google</button>
   )
+}
+
+function SignOut() {
+  
 }
 
 function ChatRoom() {
