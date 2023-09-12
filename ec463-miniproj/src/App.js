@@ -73,9 +73,11 @@ function ChatRoom() {
 }
 
 function ChatMessage(props) {
-  const { test, uid } = props.message;
+  const { text, uid } = props.message;
 
   return <p>{text}</p>
 }
 
 export default App;
+
+
