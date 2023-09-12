@@ -23,6 +23,9 @@ const auth = firbase.auth();
 const firestore = firbase.firestore();
 
 function App() {
+
+  const [user] = useAuthState(auth);
+
   return (
     <div className="App">
       <header className="App-header">
