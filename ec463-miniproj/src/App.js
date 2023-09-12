@@ -8,6 +8,7 @@ import 'firebase/auth';
 
 import { useAuthState, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { fetchSignInMethodsForEmail } from 'firebase/auth';
 
 firbase.initializeApp({
   apiKey: "AIzaSyA9UXiRdS6R81U0A5uVxlevx8lgKTkiU9k",
@@ -50,14 +51,14 @@ function SignIn() {
 
 function SignOut() {
   return auth.CurrentUser && (
-    <button onClick={ => auth.signOut()}>Sign Out</button>
+    <button onClick={ () => auth.signOut()}>Sign Out</button>
   )
 }
 
 function ChatRoom() {
   const messageRef = firestore.collection('messages');
   const query = messageRef.orderBy('createdAt').limit(25);
-  const [messages] = useCollectionData(query);
+  const [messages] = useCollectionData(query, { idField: 'id' });
 }
 
 export default App;
