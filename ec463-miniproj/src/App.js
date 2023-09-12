@@ -55,7 +55,9 @@ function SignOut() {
 }
 
 function ChatRoom() {
-
+  const messageRef = firestore.collection('messages');
+  const query = messageRef.orderBy('createdAt').limit(25);
+  const [messages] = useCollectionData(query);
 }
 
 export default App;
