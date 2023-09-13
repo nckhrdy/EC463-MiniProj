@@ -32,7 +32,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        < img src={logo} className="App-logo" alt="logo" />
+        <img src={logo} className="App-logo" alt="logo" />
         <h1 className="App-title">Welcome to React</h1>
       </header>
       <section>
@@ -69,8 +69,6 @@ function ChatRoom() {
         {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg}/>)}
       </div>
     </>
-
-
   )
 }
 
