@@ -61,18 +61,21 @@ function SignOut() {
     )
   );
 }
+const chatRoomRef = firestore.collection('chatRooms');
 
 function ChatRoom() {
-  const messageRef = firestore.collection('messages');
-  const query = messageRef.orderBy('createdAt').limit(25);
-  const [messages] = useCollectionData(query, { idField: 'id' });
+  const chatRoomRef = firestore.collection('chatRooms'); // Define chatRoomRef here
+  const query = chatRoomRef.orderBy('createdAt').limit(25);
+  const [chatRooms] = useCollectionData(query, { idField: 'id' });
   const [newMessage, setNewMessage] = useState('');
 
-  const sendMessage = async (e) => {
+  const sendMessage = async (e, chatRoomId) => {
     e.preventDefault();
 
     if (newMessage.trim() === '') return;
 
+    const messageRef = chatRoomRef.doc(chatRoomId).collection('messages');
+    
     await messageRef.add({
       text: newMessage,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -86,18 +89,34 @@ function ChatRoom() {
     <>
       <div>
         <SignOut />
-        {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
+        {chatRooms && chatRooms.map(chatRoom => (
+          <div key={chatRoom.id}>
+            <ChatMessages chatRoom={chatRoom} />
+            <form onSubmit={(e) => sendMessage(e, chatRoom.id)}>
+              <input
+                type="text"
+                placeholder="Type your message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+              />
+              <button type="submit">Send</button>
+            </form>
+          </div>
+        ))}
       </div>
-      <form onSubmit={sendMessage}>
-        <input
-          type="text"
-          placeholder="Type your message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button type="submit">Send</button>
-      </form>
     </>
+  );
+}
+
+function ChatMessages({ chatRoom }) {
+  const messageRef = chatRoomRef.doc(chatRoom.id).collection('messages');
+  const query = messageRef.orderBy('createdAt').limit(25);
+  const [messages] = useCollectionData(query, { idField: 'id' });
+
+  return (
+    <div>
+      {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
+    </div>
   );
 }
 
