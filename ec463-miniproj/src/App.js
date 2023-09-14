@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/auth';
 
-import { useAuthState, useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 // Import the createRoot() function from react-dom/client
@@ -66,6 +66,21 @@ function ChatRoom() {
   const messageRef = firestore.collection('messages');
   const query = messageRef.orderBy('createdAt').limit(25);
   const [messages] = useCollectionData(query, { idField: 'id' });
+  const [newMessage, setNewMessage] = useState('');
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+
+    if (newMessage.trim() === '') return;
+
+    await messageRef.add({
+      text: newMessage,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      uid: auth.currentUser.uid,
+    });
+
+    setNewMessage('');
+  };
 
   return (
     <>
@@ -73,6 +88,15 @@ function ChatRoom() {
         <SignOut />
         {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
       </div>
+      <form onSubmit={sendMessage}>
+        <input
+          type="text"
+          placeholder="Type your message..."
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+        />
+        <button type="submit">Send</button>
+      </form>
     </>
   );
 }
