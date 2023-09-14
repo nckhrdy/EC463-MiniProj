@@ -1,5 +1,3 @@
-// Import app dependencies
-import logo from './logo.svg';
 import React from 'react';
 import './App.css';
 
@@ -7,9 +5,11 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/auth';
 
-
 import { useAuthState, useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
+
+// Import the createRoot() function from react-dom/client
+import { createRoot } from 'react-dom/client';
 
 // Initialize firebase app with keys & credentials 
 firebase.initializeApp({
@@ -26,14 +26,12 @@ const auth = firebase.auth();
 const firestore = firebase.firestore();
 
 function App() {
-
   const [user] = useAuthState(auth);
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1 className="App-title">Welcome to React</h1>
+        <h1 className="App-title">EC463 Chat Room</h1>
       </header>
       <section>
         {user ? <ChatRoom /> : <SignIn />}
@@ -42,20 +40,26 @@ function App() {
   );
 }
 
-// Sign in function via Google Auth
 function SignIn() {
-  // Provider integration with Google-Auth
   const signInWithGoogle = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWitPopUp(provider);
-  }
-  // Function authentication trigger 
-  return ( <button onClick={signInWithGoogle}>Sign In with Google</button> )
+    auth.signInWithPopup(provider);
+  };
+
+  return (
+    <div>
+      <h2>Sign In</h2>
+      <button onClick={signInWithGoogle}>Sign In with Google</button>
+    </div>
+  );
 }
 
-// Sign out function
 function SignOut() {
-  return auth.CurrentUser && ( <button onClick={ () => auth.signOut()}>Sign Out</button> )
+  return (
+    auth.currentUser && (
+      <button onClick={() => auth.signOut()}>Sign Out</button>
+    )
+  );
 }
 
 function ChatRoom() {
@@ -66,18 +70,22 @@ function ChatRoom() {
   return (
     <>
       <div>
-        {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg}/>)}
+        <SignOut />
+        {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
       </div>
     </>
-  )
+  );
 }
 
 function ChatMessage(props) {
   const { text, uid } = props.message;
 
-  return <p>{text}</p>
+  return <p>{text}</p>;
 }
 
+const root = document.getElementById('root');
+const rootElement = createRoot(root);
+
+rootElement.render(<App />);
+
 export default App;
-
-
