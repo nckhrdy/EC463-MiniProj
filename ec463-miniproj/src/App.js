@@ -10,6 +10,8 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 // Import the createRoot() function from react-dom/client
 import { createRoot } from 'react-dom/client';
+import { Timestamp, documentId } from 'firebase/firestore';
+import { EmailAuthCredential, getAuth, initializeAuth } from 'firebase/auth';
 
 // Initialize firebase app with keys & credentials 
 firebase.initializeApp({
@@ -25,7 +27,11 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const firestore = firebase.firestore();
 
-function App() {
+// Enable/disable additional debug metrics 
+const debugMode = false;
+
+
+function App() {  
   const [user] = useAuthState(auth);
 
   return (
@@ -34,13 +40,11 @@ function App() {
         <h1 className="App-title">EC463 Chat Room</h1>
       </header>
       <section>
-        {user ? <ChatRoom /> : <SignIn />}
+        {user ? <ChatApp/> : <SignIn/>}
       </section>
     </div>
   );
 }
-
-
 
 
 function SignIn() {
@@ -66,23 +70,117 @@ function SignOut() {
 }
 
 
+// Synchronizes user data within the 'users' collection or adds them if they don't exist
+function syncUser() {
+  if (auth.currentUser) {
+    const currentUser = firestore.collection('users').doc(auth.currentUser.uid).set({
+      displayName: auth.currentUser.displayName,
+      email: auth.currentUser.email,
+      photoURL: auth.currentUser.photoURL,
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    
+    const currentUserEmailRef = firestore.collection('usersEmail').doc(auth.currentUser.email).set({
+      uid: auth.currentUser.uid,
+    });
+  }
+}
+
+// Fucntion to present debug metrics after login if 'debugMode' is enabled  
+function DebugTools() {
+  if (debugMode) {
+    return (
+      <>
+      <p>Current User Email: {auth.currentUser.email}</p>
+      <p>Current User Name: {auth.currentUser.displayName}</p>
+      <p>Current User photoURL: {auth.currentUser.photoURL}</p>
+      <p>Current User uid: {auth.currentUser.uid}</p>
+      </>
+    );
+  }
+}
+
+
+
+// Primary chat app (user must be signed in) 
+function ChatApp() {
+  // Synchronize user data after signing in
+  syncUser();
+
+
+  const [chatWith, setChatWith] = useState('');
+
+    // if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
+
+    // const chatWithUID = firestore.collection('usersEmail').doc(chatWith).get('uid');
+    // const conversationRef = firestore.collection('conversations');
+
+
+    // await conversationRef.set({
+    //   text: ,
+    //   createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    //   uid: auth.currentUser.uid,
+    // });
+    
+
+    // setNewMessage('');
+  // };
+
+  let chatWithUID;
+
+  const storedEmails = firestore.collection('usersEmail');
+
+  const launchConversation = async (event, currentUID) => {
+    event.preventDefault();
+    
+    // if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
+    
+    // chatWithUID = storedEmails.doc("almailam@bu.edu");
+
+    chatWithUID = await storedEmails.where(documentId, "==", chatWith).get('uid');
+    
+    // chatWithUID = await chatWithUIDref[0].get('id');
+    
+    // data();
+    // .get('uid')).data;
+
+    // get(chatWith).get('uid');
+    // .get(chatWith);
+  }
+
+  return (
+    <>
+      <div>
+        <>
+        
+        <form onSubmit={(e) => launchConversation(e, auth.currentUser)}>
+          <input
+            type="text"
+            placeholder="Chat with..."
+            value={chatWith}
+            onChange={(e) => setChatWith(e.target.value)}
+          />
+          <input type="submit" value="Submit"/>
+        </form>
+
+        <p>Chatting with email: {chatWith}</p>
+        <p>Chatting with uid: {chatWithUID}</p>
+        <SignOut />
+        <DebugTools />
+        </>
+      </div>
+    </>
+  );
+}
+
+
 
 
 
 
 const chatRoomRef = firestore.collection('chatRooms');
 
-function ChatRoom() {
-  // Creates a user in the 'users' collection if they don't exist
-  const currentUser = firestore.collection('users').doc(auth.currentUser.uid).set({
-    displayName: auth.currentUser.displayName,
-    email: auth.currentUser.email,
-    photoURL: auth.currentUser.photoURL,
-    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-  });
-  
-  
-  
+function ChatRoom() {  
   const chatRoomRef = firestore.collection('chatRooms'); // Define chatRoomRef here
   const query = chatRoomRef.orderBy('createdAt').limit(25);
   const [chatRooms] = useCollectionData(query, { idField: 'id' });
@@ -108,10 +206,6 @@ function ChatRoom() {
     <>
       <div>
         <SignOut />
-        <p>Current User Email: {auth.currentUser.email}</p>
-        <p>Current User Name: {auth.currentUser.displayName}</p>
-        <p>Current User photoURL: {auth.currentUser.photoURL}</p>
-        <p>Current User uid: {auth.currentUser.uid}</p>
 
         {chatRooms && chatRooms.map(chatRoom => (
           <div key={chatRoom.id}>
