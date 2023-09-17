@@ -40,6 +40,9 @@ function App() {
   );
 }
 
+
+
+
 function SignIn() {
   const signInWithGoogle = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -61,9 +64,24 @@ function SignOut() {
     )
   );
 }
+
+
+
+
+
+
 const chatRoomRef = firestore.collection('chatRooms');
 
 function ChatRoom() {
+  // Creates a user in the 'users' collection if they don't exist
+  const currentUser = firestore.collection('users').doc(auth.currentUser.uid).set({
+    displayName: auth.currentUser.displayName,
+    email: auth.currentUser.email,
+    photoURL: auth.currentUser.photoURL,
+    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+  
+  
   const chatRoomRef = firestore.collection('chatRooms'); // Define chatRoomRef here
   const query = chatRoomRef.orderBy('createdAt').limit(25);
   const [chatRooms] = useCollectionData(query, { idField: 'id' });
@@ -89,6 +107,11 @@ function ChatRoom() {
     <>
       <div>
         <SignOut />
+        <p>Current User Email: {auth.currentUser.email}</p>
+        <p>Current User Name: {auth.currentUser.displayName}</p>
+        <p>Current User photoURL: {auth.currentUser.photoURL}</p>
+        <p>Current User uid: {auth.currentUser.uid}</p>
+
         {chatRooms && chatRooms.map(chatRoom => (
           <div key={chatRoom.id}>
             <ChatMessages chatRoom={chatRoom} />
