@@ -113,53 +113,83 @@ function ChatApp() {
 
   const [chatWith, setChatWith] = useState('');
   const [chatWithUID, setChatWithUID] = useState('');
-
-    // if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
-
-    // const chatWithUID = firestore.collection('usersEmail').doc(chatWith).get('uid');
-    // const conversationRef = firestore.collection('conversations');
-
-
-    // await conversationRef.set({
-    //   text: ,
-    //   createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    //   uid: auth.currentUser.uid,
-    // });
-    
-
-    // setNewMessage('');
-  // };
-
-  
+  const [conversation, setConversation] = useState('');
+  const [msgtodisplay, setMsgtodisplay] = useState('');
 
 
   const launchConversation = async (event, currentUID) => {
     event.preventDefault();
     
-    // if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
+    // Sanitizes user input before attempting query
+    if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
+
+    // Generate and execute query to get user document matching given email 
+    const querySnapshot = await firestore.collection('users').where('email', "==", chatWith).get();
+    const invalidUserQuery = querySnapshot.empty;
+
+    if (!invalidUserQuery) {
+      const userDoc = querySnapshot.docs[0];
+      const targetUID = userDoc.data().uid;
+      setChatWithUID(targetUID);
+
+      const conversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
+      const invalidConversationQuery = conversationQuery.empty;
+
+      if (invalidConversationQuery) {
+        const storedConverstations = firestore.collection('conversations');
+        const newChat = await storedConverstations.add({
+          uidA: auth.currentUser.uid,
+          uidB: targetUID,
+          emailA: auth.currentUser.email,
+          emailB: chatWith,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // await newChat.set(newChatDoc);
+        
+        const messages = await newChat.collection('messages').add({
+          msg: "Hi there! This is the start of our conversation!",
+          uidSender: auth.currentUser.uid,
+          uidReceiver: targetUID,
+          sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+      // nckhrdy@bu.edu
+      const existingConversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
+      const conversationMatch = existingConversationQuery.docs[0];
+      // const conversationMatchRef = conversationMatch.ref();
+
+      // conversations is a COLLECTION
+      // KiCCB4MI0REvFeuaaFPa is a DOCUMENT (conversation between almailam@bu.edu and nckhrdy@bu.edu)
+      // messages is a COLLECTION
+      // tSftTYcZtjUZn7vYweDJ is a DOCUMENT (the first message)
+      const msgmsg = await firestore.doc('/conversations/KiCCB4MI0REvFeuaaFPa/messages/tSftTYcZtjUZn7vYweDJ').get();
+      const msgmsgdata = msgmsg.data().msg;
+
+      // const msgmsgresult = msgmsg.docs[0];
+      // const msgmsgfinal = await something.data();
+
+
+      // const chat = existingConversationQuery.docs[0];
+      // const msgmsg = chat.useCollectionData('messages');
+      // const query = conversation.orderBy('createdAt').limit(25);
+      // const [messages] = useCollectionData(query, { idField: 'id' });
+
+      setMsgtodisplay(msgmsgdata)
+    } else {
+      setChatWithUID("N/A");
+    }
     
-    // chatWithUID = storedEmails.doc("almailam@bu.edu");
 
-    const storedUsers = firestore.collection('users');
     
-    const querySnapshot = await storedUsers.where('email', "==", chatWith).get();
-    //   // where('Document ID', "==", "almailam@bu.edu").get();
 
-    const userDoc = querySnapshot.docs[0];
-    const userUID = userDoc.data().uid;
+    // const existingConversationQuery = await conversationsRef
+    // .where('participants', 'array-contains', auth.currentUser.uid)
+    // .where('participants', 'array-contains', userUID)
+    // .get();
 
-    // setChatWithUID(userUID);
-    setChatWithUID(userUID);
-
-    // chatWithUID = await storedEmails.where(documentId, "==", "almailam@bu.edu").get('uid');
+    //const conversationsRef = firestore.collection('conversations');
     
-    // chatWithUID = await chatWithUIDref[0].get('id');
-    
-    // data();
-    // .get('uid')).data;
-
-    // get(chatWith).get('uid');
-    // .get(chatWith);
   }
 
   return (
@@ -179,6 +209,7 @@ function ChatApp() {
 
         <p>Chatting with email: {chatWith}</p>
         <p>Chatting with uid: {chatWithUID}</p>
+        <p>Message: {msgtodisplay}</p>
         <SignOut />
         <DebugTools />
         </>
