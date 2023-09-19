@@ -127,14 +127,18 @@ function ChatApp() {
     const querySnapshot = await firestore.collection('users').where('email', "==", chatWith).get();
     const invalidUserQuery = querySnapshot.empty;
 
+    //if the user is found, set the chat to be between current user's email and user entered's email
     if (!invalidUserQuery) {
       const userDoc = querySnapshot.docs[0];
       const targetUID = userDoc.data().uid;
       setChatWithUID(targetUID);
 
+      //check if a conversation already exists
       const conversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
+      //if the query for an existing conversation returns empty, set the query to be invalid
       const invalidConversationQuery = conversationQuery.empty;
 
+      //if there was no chat with the uid's found, create a new chat conversation.
       if (invalidConversationQuery) {
         const storedConverstations = firestore.collection('conversations');
         const newChat = await storedConverstations.add({
@@ -144,8 +148,6 @@ function ChatApp() {
           emailB: chatWith,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-
-        // await newChat.set(newChatDoc);
         
         const messages = await newChat.collection('messages').add({
           msg: "Hi there! This is the start of our conversation!",
@@ -154,17 +156,51 @@ function ChatApp() {
           sentAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
       }
+      //if there was a chat with the two UIDs found display the messages (limit 25)
+      else {
+        const conversation = conversationQuery.docs[0].ref;
+      
+        // Query for the last 25 messages in the conversation
+        const messagesQuery = await conversation
+          .collection('messages')
+          .orderBy('sentAt', 'desc') // Order messages by sentAt in descending order (most recent first)
+          .limit(25) // Limit to the latest 25 messages
+          .get();
+      
+        // Loop through the messages and display them (you'll need to implement the display logic)
+        messagesQuery.forEach((messageDoc) => {
+          const messageData = messageDoc.data();
+          // Implement the logic to display each message (e.g., append to a chat UI component)
+          console.log(messageData.msg); // For demonstration, log the message content
+        });
+      
+        // Add a real-time listener to listen for new messages and update the UI
+        conversation
+          .collection('messages')
+          .orderBy('sentAt')
+          .startAfter(messagesQuery.docs[messagesQuery.docs.length - 1]) // Start after the last message in the initial query
+          .onSnapshot((messageSnapshot) => {
+            messageSnapshot.docChanges().forEach((change) => {
+              if (change.type === 'added') {
+                const newMessageData = change.doc.data();
+                // Implement logic to display the newly added message in real-time
+                console.log(newMessageData.msg); // For demonstration, log the new message
+                setMsgtodisplay(newMessageData.msg)
+              }
+            });
+          });
+      }
       // nckhrdy@bu.edu
-      const existingConversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
-      const conversationMatch = existingConversationQuery.docs[0];
-      // const conversationMatchRef = conversationMatch.ref();
+      // const existingConversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
+      // const conversationMatch = existingConversationQuery.docs[0];
+      // // const conversationMatchRef = conversationMatch.ref();
 
-      // conversations is a COLLECTION
-      // KiCCB4MI0REvFeuaaFPa is a DOCUMENT (conversation between almailam@bu.edu and nckhrdy@bu.edu)
-      // messages is a COLLECTION
-      // tSftTYcZtjUZn7vYweDJ is a DOCUMENT (the first message)
-      const msgmsg = await firestore.doc('/conversations/KiCCB4MI0REvFeuaaFPa/messages/tSftTYcZtjUZn7vYweDJ').get();
-      const msgmsgdata = msgmsg.data().msg;
+      // // conversations is a COLLECTION
+      // // KiCCB4MI0REvFeuaaFPa is a DOCUMENT (conversation between almailam@bu.edu and nckhrdy@bu.edu)
+      // // messages is a COLLECTION
+      // // tSftTYcZtjUZn7vYweDJ is a DOCUMENT (the first message)
+      // const msgmsg = await firestore.doc('/conversations/KiCCB4MI0REvFeuaaFPa/messages/tSftTYcZtjUZn7vYweDJ').get();
+      // const msgmsgdata = msgmsg.data().msg;
 
       // const msgmsgresult = msgmsg.docs[0];
       // const msgmsgfinal = await something.data();
@@ -175,7 +211,7 @@ function ChatApp() {
       // const query = conversation.orderBy('createdAt').limit(25);
       // const [messages] = useCollectionData(query, { idField: 'id' });
 
-      setMsgtodisplay(msgmsgdata)
+      //setMsgtodisplay(newMessageData.msg)
     } else {
       setChatWithUID("N/A");
     }
@@ -216,6 +252,13 @@ function ChatApp() {
       </div>
     </>
   );
+}
+
+function displayMessage(messageContent) {
+  const chatContainer = document.getElementById('chat-container');
+  const messageDiv = document.createElement('div');
+  messageDiv.textContent = messageContent;
+  chatContainer.appendChild(messageDiv);
 }
 
 
