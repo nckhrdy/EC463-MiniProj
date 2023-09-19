@@ -28,7 +28,7 @@ const auth = firebase.auth();
 const firestore = firebase.firestore();
 
 // Enable/disable additional debug metrics 
-const debugMode = false;
+const debugMode = true;
 
 
 function App() {  
@@ -78,10 +78,12 @@ function syncUser() {
       email: auth.currentUser.email,
       photoURL: auth.currentUser.photoURL,
       lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+      uid: auth.currentUser.uid,
     });
     
     const currentUserEmailRef = firestore.collection('usersEmail').doc(auth.currentUser.email).set({
       uid: auth.currentUser.uid,
+      email: auth.currentUser.email,
     });
   }
 }
@@ -95,6 +97,7 @@ function DebugTools() {
       <p>Current User Name: {auth.currentUser.displayName}</p>
       <p>Current User photoURL: {auth.currentUser.photoURL}</p>
       <p>Current User uid: {auth.currentUser.uid}</p>
+      <p>Current User Last Login: {auth.currentUser.lastLogin}</p>
       </>
     );
   }
@@ -109,6 +112,7 @@ function ChatApp() {
 
 
   const [chatWith, setChatWith] = useState('');
+  const [chatWithUID, setChatWithUID] = useState('');
 
     // if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
 
@@ -126,9 +130,8 @@ function ChatApp() {
     // setNewMessage('');
   // };
 
-  let chatWithUID;
+  
 
-  const storedEmails = firestore.collection('usersEmail');
 
   const launchConversation = async (event, currentUID) => {
     event.preventDefault();
@@ -137,7 +140,18 @@ function ChatApp() {
     
     // chatWithUID = storedEmails.doc("almailam@bu.edu");
 
-    chatWithUID = await storedEmails.where(documentId, "==", chatWith).get('uid');
+    const storedUsers = firestore.collection('users');
+    
+    const querySnapshot = await storedUsers.where('email', "==", chatWith).get();
+    //   // where('Document ID', "==", "almailam@bu.edu").get();
+
+    const userDoc = querySnapshot.docs[0];
+    const userUID = userDoc.data().uid;
+
+    // setChatWithUID(userUID);
+    setChatWithUID(userUID);
+
+    // chatWithUID = await storedEmails.where(documentId, "==", "almailam@bu.edu").get('uid');
     
     // chatWithUID = await chatWithUIDref[0].get('id');
     
