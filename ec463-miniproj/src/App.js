@@ -126,14 +126,18 @@ function ChatApp() {
     const querySnapshot = await firestore.collection('users').where('email', "==", chatWith).get();
     const invalidUserQuery = querySnapshot.empty;
 
+    //if the user is found, set the chat to be between current user's email and user entered's email
     if (!invalidUserQuery) {
       const userDoc = querySnapshot.docs[0];
       const targetUID = userDoc.data().uid;
       setChatWithUID(targetUID);
 
+      //check if a conversation already exists
       const conversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
+      //if the query for an existing conversation returns empty, set the query to be invalid
       const invalidConversationQuery = conversationQuery.empty;
 
+      //if there was no chat with the uid's found, create a new chat conversation.
       if (invalidConversationQuery) {
         const storedConverstations = firestore.collection('conversations');
         const newChat = await storedConverstations.add({
@@ -143,8 +147,6 @@ function ChatApp() {
           emailB: chatWith,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
-
-        // await newChat.set(newChatDoc);
         
         const messages = await newChat.collection('messages').add({
           msg: "Hi there! This is the start of our conversation!",
@@ -209,6 +211,13 @@ function ChatApp() {
       </div>
     </>
   );
+}
+
+function displayMessage(messageContent) {
+  const chatContainer = document.getElementById('chat-container');
+  const messageDiv = document.createElement('div');
+  messageDiv.textContent = messageContent;
+  chatContainer.appendChild(messageDiv);
 }
 
 

@@ -1,89 +1,80 @@
-/* App.css */
+/* App */
 .App {
   text-align: center;
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  padding: 20px;
 }
 
+/* App header */
 .App-header {
-  background-color: #333;
+  background-color: #282c34;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
   color: white;
-  padding: 20px;
 }
 
-.App-title {
-  font-size: 24px;
-  margin: 0;
-}
-
-.signIn-container {
-  text-align: center;
+/* Sign In component */
+.SignIn {
   margin-top: 20px;
 }
 
-.sign-in-button {
+/* Sign In button */
+.SignIn button {
   background-color: #4285f4;
   color: white;
   border: none;
   padding: 10px 20px;
-  font-size: 16px;
   cursor: pointer;
-}
-
-.sign-in-button:hover {
-  background-color: #357ae8;
-}
-
-.sign-out-button {
-  background-color: #f44336;
-}
-
-.sign-out-button:hover {
-  background-color: #d32f2f;
-}
-
-.debug-info {
   font-size: 16px;
-  margin-top: 20px;
-  text-align: left;
 }
 
-.chat-container {
+/* Sign Out button */
+.SignOut button {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Chat form */
+.ChatForm {
   margin-top: 20px;
 }
 
-.chat-input {
-  width: 100%;
+/* Chat input */
+.ChatForm input[type="text"] {
   padding: 10px;
   font-size: 16px;
+  width: 80%;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
 }
 
-.chat-button {
+/* Chat submit button */
+.ChatForm input[type="submit"] {
   background-color: #4285f4;
   color: white;
   border: none;
   padding: 10px 20px;
-  font-size: 16px;
   cursor: pointer;
-  margin-top: 10px;
+  font-size: 16px;
 }
 
-.chat-button:hover {
-  background-color: #357ae8;
-}
-
-.chat-messages {
+/* Chat messages container */
+.ChatMessages {
   margin-top: 20px;
-  text-align: left;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.chat-message {
-  background-color: #eee;
+/* Chat message */
+.ChatMessage {
+  background-color: #f1f0f0;
   padding: 10px;
-  border-radius: 4px;
-  margin: 5px 0;
+  margin: 5px;
+  border-radius: 5px;
+  word-wrap: break-word;
 }
