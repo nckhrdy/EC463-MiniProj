@@ -10,7 +10,7 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 // Import the createRoot() function from react-dom/client
 import { createRoot } from 'react-dom/client';
-import { Timestamp, documentId } from 'firebase/firestore';
+import { CollectionReference, Timestamp, documentId } from 'firebase/firestore';
 import { EmailAuthCredential, getAuth, initializeAuth } from 'firebase/auth';
 
 // Initialize firebase app with keys & credentials 
@@ -110,7 +110,6 @@ function ChatApp() {
   // Synchronize user data after signing in
   syncUser();
 
-
   const [chatWith, setChatWith] = useState('');
   const [chatWithUID, setChatWithUID] = useState('');
   const [conversation, setConversation] = useState('');
@@ -154,28 +153,22 @@ function ChatApp() {
           sentAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
       }
-      // nckhrdy@bu.edu
+
+      // Query and find the ID of the conversation between the two users
       const existingConversationQuery = await firestore.collection('conversations').where('uidA', 'in', [auth.currentUser.uid, targetUID]).where('uidB', 'in', [auth.currentUser.uid, targetUID]).get();
-      const conversationMatch = existingConversationQuery.docs[0];
-      // const conversationMatchRef = conversationMatch.ref();
+      const conversationID = existingConversationQuery.docs[0].id;
 
-      // conversations is a COLLECTION
-      // KiCCB4MI0REvFeuaaFPa is a DOCUMENT (conversation between almailam@bu.edu and nckhrdy@bu.edu)
-      // messages is a COLLECTION
-      // tSftTYcZtjUZn7vYweDJ is a DOCUMENT (the first message)
-      const msgmsg = await firestore.doc('/conversations/KiCCB4MI0REvFeuaaFPa/messages/tSftTYcZtjUZn7vYweDJ').get();
-      const msgmsgdata = msgmsg.data().msg;
+      // Query and retrieve the last ten messages in the conversation 
+      const messageCollection = "conversations/" + conversationID + "/messages";
+      const messagesQuery = await firestore.collection(messageCollection).orderBy('sentAt').limit(10).get();
+      const messages = messagesQuery.docs;
+      
+      // Manually reading the contents of the first message (message[0]) 
+      const msg1 = messages[0].get('msg');
 
-      // const msgmsgresult = msgmsg.docs[0];
-      // const msgmsgfinal = await something.data();
+      // NOW WE NEED TO PRESENT ALL THE MESSAGES WITH SOME NICE CSS  
 
-
-      // const chat = existingConversationQuery.docs[0];
-      // const msgmsg = chat.useCollectionData('messages');
-      // const query = conversation.orderBy('createdAt').limit(25);
-      // const [messages] = useCollectionData(query, { idField: 'id' });
-
-      setMsgtodisplay(msgmsgdata)
+      setMsgtodisplay(msg1)
     } else {
       setChatWithUID("N/A");
     }
