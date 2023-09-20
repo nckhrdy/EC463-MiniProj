@@ -14,7 +14,7 @@ import 'firebase/auth';
 
 // Initialize firebase app with keys & credentials 
 firebase.initializeApp({
-  apiKey: "AIzaSyA9UXiRdS6R81U0A5uVxlevx8lgKTkiU9k",
+  apiKey:  
   authDomain: "ec463-miniproj-398821.firebaseapp.com",
   projectId: "ec463-miniproj-398821",
   storageBucket: "ec463-miniproj-398821.appspot.com",
