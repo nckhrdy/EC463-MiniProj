@@ -1,80 +1,174 @@
-/* App */
-.App {
-  text-align: center;
+/* App.css */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
 }
 
-/* App header */
-.App-header {
-  background-color: #282c34;
-  min-height: 10vh;
+.App {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  height: 100vh;
+}
+
+.App-header {
+  background-color: #4682B4;
   color: white;
+  padding: 1rem;
+  text-align: center;
+  font-size: 2rem;
+  border-radius: 10% 10% 0 0;
 }
 
-/* Sign In component */
-.SignIn {
-  margin-top: 20px;
+.App-title {
+  margin: 0;
 }
 
-/* Sign In button */
-.SignIn button {
-  background-color: #4285f4;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-/* Sign Out button */
-.SignOut button {
-  background-color: #d9534f;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-/* Chat form */
-.ChatForm {
-  margin-top: 20px;
-}
-
-/* Chat input */
-.ChatForm input[type="text"] {
-  padding: 10px;
-  font-size: 16px;
+section {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
   width: 80%;
-  border: 1px solid #ccc;
+  max-width: 600px;
 }
 
-/* Chat submit button */
-.ChatForm input[type="submit"] {
-  background-color: #4285f4;
+button {
+  background-color: #4682B4;
   color: white;
   border: none;
-  padding: 10px 20px;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Chat messages container */
-.ChatMessages {
-  margin-top: 20px;
-  max-height: 400px;
+button:hover {
+  background-color: #E1C16E;
+  color: #4682B4;
+}
+
+/* Style for the Sign In button */
+.sign-in-button {
+  background-color: #E1C16E; /* Change the button color */
+  color: #4682B4; /* Change the text color */
+  font-weight: bold; /* Make the text bold */
+}
+
+form {
+  display: flex;
+  gap: 1rem;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+}
+
+input[type="submit"] {
+  background-color: #4682B4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+input[type="submit"]:hover {
+  background-color: #E1C16E;
+  color: #4682B4;
+}
+
+.chat-box {
+  margin-top: 1rem;
+}
+
+.messages-wrapper {
+  max-height: 300px;
   overflow-y: auto;
 }
 
-/* Chat message */
-.ChatMessage {
-  background-color: #f1f0f0;
-  padding: 10px;
-  margin: 5px;
-  border-radius: 5px;
+.chat-bubble {
+  max-width: 80%;
+  margin-bottom: 1rem;
+  padding: 0.7rem;
   word-wrap: break-word;
+  border-style: solid;
+  border-radius: 10px;
+  border-color: #E1C16E;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.user-name {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.chat-bubble__left {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.user-message {
+  margin: 0;
+}
+
+/* New styles for chat bubbles */
+.chat-bubble.left {
+  background-color: #e5e5ea;
+  color: white;
+  margin-right: auto;
+  margin-left: 0;
+  border-color: #E1C16E;
+}
+
+.chat-bubble.right {
+  background-color: #4682B4;
+  color: white;
+  margin-left: auto;
+  margin-right: 0;
+  border-color: #4682B4;
+}
+
+.send-message {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.form-input__input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.send-message button {
+  background-color: #4682B4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.send-message button:hover {
+  background-color: #E1C16E;
+  color: #4682B4;
 }

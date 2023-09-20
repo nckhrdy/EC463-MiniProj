@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 import firebase from 'firebase/compat/app';
@@ -6,12 +6,11 @@ import 'firebase/compat/firestore';
 import 'firebase/compat/auth';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 // Import the createRoot() function from react-dom/client
 import { createRoot } from 'react-dom/client';
-import { CollectionReference, Timestamp, documentId } from 'firebase/firestore';
-import { EmailAuthCredential, getAuth, initializeAuth } from 'firebase/auth';
+import { documentId, QuerySnapshot, onSnapshot } from 'firebase/firestore';
+import 'firebase/auth';
 
 // Initialize firebase app with keys & credentials 
 firebase.initializeApp({
@@ -37,7 +36,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1 className="App-title">EC463 Chat Room</h1>
+        <h1 className="App-title">☁️</h1>
       </header>
       <section>
         {user ? <ChatApp/> : <SignIn/>}
@@ -46,7 +45,6 @@ function App() {
   );
 }
 
-
 function SignIn() {
   const signInWithGoogle = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -54,19 +52,14 @@ function SignIn() {
   };
 
   return (
-    <div>
-      <h2>Sign In</h2>
-      <button onClick={signInWithGoogle}>Sign In with Google</button>
+    <div align="center">
+      <button onClick={signInWithGoogle}>Sign In</button>
     </div>
   );
 }
 
 function SignOut() {
-  return (
-    auth.currentUser && (
-      <button onClick={() => auth.signOut()}>Sign Out</button>
-    )
-  );
+  return ((<button onClick={() => { if (auth == null || auth.currentUser == null || auth.currentUser.uid == null) window.close(); else auth.signOut(); }}>Sign Out</button>));
 }
 
 
@@ -75,15 +68,15 @@ function syncUser() {
   if (auth.currentUser) {
     const currentUser = firestore.collection('users').doc(auth.currentUser.uid).set({
       displayName: auth.currentUser.displayName,
-      email: auth.currentUser.email,
+      email: auth.currentUser.email.toLowerCase(),
       photoURL: auth.currentUser.photoURL,
       lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       uid: auth.currentUser.uid,
     });
     
-    const currentUserEmailRef = firestore.collection('usersEmail').doc(auth.currentUser.email).set({
+    const currentUserEmailRef = firestore.collection('usersEmail').doc(auth.currentUser.email.toLowerCase()).set({
       uid: auth.currentUser.uid,
-      email: auth.currentUser.email,
+      email: auth.currentUser.email.toLowerCase(),
     });
   }
 }
@@ -93,7 +86,7 @@ function DebugTools() {
   if (debugMode) {
     return (
       <>
-      <p>Current User Email: {auth.currentUser.email}</p>
+      <p>Current User Email: {auth.currentUser.email.toLowerCase()}</p>
       <p>Current User Name: {auth.currentUser.displayName}</p>
       <p>Current User photoURL: {auth.currentUser.photoURL}</p>
       <p>Current User uid: {auth.currentUser.uid}</p>
@@ -112,24 +105,24 @@ function ChatApp() {
 
   const [chatWith, setChatWith] = useState('');
   const [chatWithUID, setChatWithUID] = useState('');
-  const [conversation, setConversation] = useState('');
-  const [msgtodisplay, setMsgtodisplay] = useState('');
-
+  const [messageCollection, setMessageCollection] = useState('');
 
   const launchConversation = async (event, currentUID) => {
     event.preventDefault();
     
     // Sanitizes user input before attempting query
-    if ((chatWith.trim() === '') || (chatWith.trim() === auth.currentUser.email)) return;
+    if (chatWith.trim() === '') { alert("Please enter the email of a registered user."); return; }
+    if (chatWith.trim() === auth.currentUser.email.toLowerCase()) { alert("You cannot create a conversation with yourself. Please enter the email of another registered user."); return; }
 
     // Generate and execute query to get user document matching given email 
-    const querySnapshot = await firestore.collection('users').where('email', "==", chatWith).get();
+    const querySnapshot = await firestore.collection('users').where('email', "==", chatWith.toLowerCase()).get();
     const invalidUserQuery = querySnapshot.empty;
 
     //if the user is found, set the chat to be between current user's email and user entered's email
     if (!invalidUserQuery) {
       const userDoc = querySnapshot.docs[0];
       const targetUID = userDoc.data().uid;
+
       setChatWithUID(targetUID);
 
       //check if a conversation already exists
@@ -143,15 +136,16 @@ function ChatApp() {
         const newChat = await storedConverstations.add({
           uidA: auth.currentUser.uid,
           uidB: targetUID,
-          emailA: auth.currentUser.email,
-          emailB: chatWith,
+          emailA: auth.currentUser.email.toLowerCase(),
+          emailB: chatWith.toLowerCase(),
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
         
         const messages = await newChat.collection('messages').add({
-          msg: "Hi there! This is the start of our conversation!",
-          uidSender: auth.currentUser.uid,
-          uidReceiver: targetUID,
+          msg: "This is the start of our conversation!",
+          uidSender:  auth.currentUser.uid,
+          nameSender:  auth.currentUser.displayName,
+          photoSender:  auth.currentUser.photoURL,
           sentAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
       }
@@ -162,134 +156,158 @@ function ChatApp() {
 
       // Query and retrieve the last ten messages in the conversation 
       const messageCollection = "conversations/" + conversationID + "/messages";
-      const messagesQuery = await firestore.collection(messageCollection).orderBy('sentAt').limit(10).get();
-      const messages = messagesQuery.docs;
+
+      setMessageCollection(messageCollection);
       
-      // Manually reading the contents of the first message (message[0]) 
-      const msg1 = messages[0].get('msg');
-
-      // NOW WE NEED TO PRESENT ALL THE MESSAGES WITH SOME NICE CSS  
-
-      setMsgtodisplay(msg1)
-    } else {
-      setChatWithUID("N/A");
-    }
-    
-
-    
-
-    // const existingConversationQuery = await conversationsRef
-    // .where('participants', 'array-contains', auth.currentUser.uid)
-    // .where('participants', 'array-contains', userUID)
-    // .get();
-
-    //const conversationsRef = firestore.collection('conversations');
-    
+    } else alert("Please enter the email of a registered user.");
   }
 
-  return (
-    <>
-      <div>
-        <>
-        
-        <form onSubmit={(e) => launchConversation(e, auth.currentUser)}>
-          <input
-            type="text"
-            placeholder="Chat with..."
-            value={chatWith}
-            onChange={(e) => setChatWith(e.target.value)}
-          />
-          <input type="submit" value="Submit"/>
-        </form>
-
-        <p>Chatting with email: {chatWith}</p>
-        <p>Chatting with uid: {chatWithUID}</p>
-        <p>Message: {msgtodisplay}</p>
-        <SignOut />
-        <DebugTools />
-        </>
-      </div>
-    </>
-  );
+  if (!messageCollection) {
+    return (
+      <> 
+        <div>
+          <>
+          <form onSubmit={(e) => launchConversation(e, auth.currentUser)}>
+            <input
+              type="text"
+              placeholder="Chat with..."
+              value={chatWith}
+              onChange={(e) => setChatWith(e.target.value)}
+            />
+            <input type="submit" value="Submit"/>
+          </form>
+          </>
+        </div>
+        <div><SignOut /></div>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <div>
+          <>
+          <Conversation messageCollection={messageCollection} />
+          </>
+        </div>
+      </>
+    );
+  }
 }
 
-function displayMessage(messageContent) {
-  const chatContainer = document.getElementById('chat-container');
-  const messageDiv = document.createElement('div');
-  messageDiv.textContent = messageContent;
-  chatContainer.appendChild(messageDiv);
-}
 
 
 
+const Conversation = ({ messageCollection }) => {
+  const [messages, setMessages] = useState([]);
 
+  useEffect(() => {
+    const messagesQuery = firestore.collection(messageCollection).orderBy('sentAt', 'desc').limit(30);
 
+    const unsubscribeFunc = onSnapshot(messagesQuery, (QuerySnapshot) => {
+      const messages = [];
 
-const chatRoomRef = firestore.collection('chatRooms');
-
-function ChatRoom() {  
-  const chatRoomRef = firestore.collection('chatRooms'); // Define chatRoomRef here
-  const query = chatRoomRef.orderBy('createdAt').limit(25);
-  const [chatRooms] = useCollectionData(query, { idField: 'id' });
-  const [newMessage, setNewMessage] = useState('');
-
-  const sendMessage = async (e, chatRoomId) => {
-    e.preventDefault();
-
-    if (newMessage.trim() === '') return;
-
-    const messageRef = chatRoomRef.doc(chatRoomId).collection('messages');
-    
-    await messageRef.add({
-      text: newMessage,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      uid: auth.currentUser.uid,
+      QuerySnapshot.forEach((doc) => { messages.push({ ...doc.data(), id: doc.id }); });
+      const sortedMessages = messages.sort((a, b) => a.sentAt - b.sentAt);
+      setMessages(sortedMessages);
     });
 
-    setNewMessage('');
-  };
+    return () => unsubscribeFunc;
+  });
+
 
   return (
-    <>
-      <div>
-        <SignOut />
-
-        {chatRooms && chatRooms.map(chatRoom => (
-          <div key={chatRoom.id}>
-            <ChatMessages chatRoom={chatRoom} />
-            <form onSubmit={(e) => sendMessage(e, chatRoom.id)}>
-              <input
-                type="text"
-                placeholder="Type your message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-              />
-              <button type="submit">Send</button>
-            </form>
+    <main className="chat-box">
+      <div className="messages-wrapper">
+        {messages?.map((message) => (
+          <>
+          <div className={`chat-bubble ${message.uidSender === auth.currentUser.uid ? "right" : ""}`}>
+          <img className="chat-bubble__left" src={message.photoSender}/>
+          <div className="chat-bubble__right">
+            <p className="user-name">{message.nameSender}</p>
+            <p className="user-message">{message.msg}</p>
           </div>
+        </div>
+        </>
         ))}
       </div>
-    </>
+      <SendMessage messageCollection={messageCollection} />
+      <div><SignOut /></div>
+    </main>
   );
-}
+};
 
-function ChatMessages({ chatRoom }) {
-  const messageRef = chatRoomRef.doc(chatRoom.id).collection('messages');
-  const query = messageRef.orderBy('createdAt').limit(25);
-  const [messages] = useCollectionData(query, { idField: 'id' });
 
+
+
+
+
+const SendMessage = ({ messageCollection }) => {
+  const [message, setMessage] = useState('');
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+
+    if (message.trim() === "") {
+      alert("Please enter a valid message.");
+      return;
+    }
+
+    // Send new message (add document to firestore message collection) 
+    await firestore.collection(messageCollection).add({
+      msg: message,
+      uidSender: auth.currentUser.uid,
+      nameSender: auth.currentUser.displayName,
+      photoSender: auth.currentUser.photoURL,
+      sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    setMessage("");
+  };
   return (
-    <div>
-      {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
-    </div>
+    <form onSubmit={(e) => sendMessage(e)} className="send-message">
+      <label htmlFor="messageInput" hidden>
+        Enter Message
+      </label>
+      <input
+        id="messageInput"
+        name="messageInput"
+        type="text"
+        className="form-input__input"
+        placeholder="Enter your message..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+      <button type="submit">Send</button>
+    </form>
   );
-}
+};
 
-function ChatMessage(props) {
-  const { text, uid } = props.message;
 
-  return <p>{text}</p>;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const root = document.getElementById('root');
 const rootElement = createRoot(root);

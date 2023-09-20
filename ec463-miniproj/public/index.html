@@ -2,16 +2,28 @@
 <html>
   <head>
     <!-- Your meta tags, title, and other head content here -->
+    <title>Cloud Chat...</title>
+
+    <!-- Link to the Aleo font stylesheet -->
+    <link rel="stylesheet" href="path/to/your-fonts.css">
+
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Include the Google Sign-In API -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
   </head>
   <body>
     <div id="root">
       <div class="App">
         <header class="App-header">
-          <h1 class="App-title">EC463 Chat Room</h1>
+          <h1 class="App-title">Cloud Chat...</h1>
         </header>
         <section>
-          <!-- Sign-in button (you may have other authentication logic) -->
-          <button class="sign-in">Sign In</button>
+          <!-- Custom Google Sign-In button with your image -->
+          <div class="google-signin-button">
+            <div class="g-signin2" data-onsuccess="onSignIn"></div>
+          </div>
 
           <!-- Chat container to display messages -->
           <div id="chat-container">
@@ -24,7 +36,25 @@
         </section>
       </div>
     </div>
-    <!-- Include any other scripts or stylesheets you need -->
+    
+    <!-- Include your JavaScript file (App.js) -->
     <script src="App.js"></script>
+    
+    <!-- Replace 'YOUR_CLIENT_ID' with your actual Google API Client ID -->
+    <script>
+      function onSignIn(googleUser) {
+        // Handle the Google Sign-In here
+        // You can access the user's profile and perform actions after signing in.
+      }
+    </script>
+    
+    <!-- Initialize the Google API with your Client ID -->
+    <script>
+      gapi.load('auth2', function() {
+        gapi.auth2.init({
+          client_id: 'YOUR_CLIENT_ID'
+        });
+      });
+    </script>
   </body>
 </html>
